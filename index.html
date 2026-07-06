@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+  Relais OAuth Spotify -> dashboard pingouin.local
+  =================================================
+  Depuis novembre 2025, Spotify exige une URI de redirection OAuth en
+  HTTPS (les adresses http:// sont refusees, sauf 127.0.0.1). Le
+  dashboard du R4 (http://pingouin.local) ne fait pas de TLS : cette
+  page, hebergee sur GitHub Pages (HTTPS), sert donc de point de rebond.
+  Elle recoit le retour d'autorisation de Spotify et le renvoie TEL QUEL
+  au dashboard, qui termine l'echange PKCE dans le navigateur.
+
+  Aucun secret ici : le code d'autorisation recu est inutilisable sans
+  le code_verifier PKCE, qui n'a jamais quitte le navigateur d'origine.
+  L'origine de retour (transportee dans le parametre state) est validee
+  contre une liste blanche pour ne pas servir de redirecteur ouvert.
+
+  INSTALLATION (une fois)
+    1. Creer un repo GitHub PUBLIC nomme "spotify-relay" et y deposer ce
+       fichier sous le nom index.html.
+    2. Settings > Pages > Deploy from a branch > main / root.
+    3. Verifier que https://theapache142857.github.io/spotify-relay/
+       affiche cette page.
+    4. Dans le dashboard developpeur Spotify (developer.spotify.com),
+       ajouter EXACTEMENT cette URL (avec le / final) comme Redirect URI
+       de l'application.
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relais OAuth Spotify &rarr; pingouin.local</title>
+<style>
+  body{background:#0a0a0e;color:#edeef2;font-family:ui-monospace,Menlo,Consolas,monospace;
+       padding:48px 24px;text-align:center;}
+  .muted{color:#7c7c8a;font-size:.85rem;margin-top:12px;}
+</style>
+</head>
+<body>
+<p id="msg">redirection vers le dashboard&hellip;</p>
+<p class="muted">Air Pingouin Quarter General &middot; relais OAuth Spotify</p>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var msg = document.getElementById('msg');
+  if (!q.get('code') && !q.get('error')) {
+    msg.textContent = 'Page relais OAuth du dashboard Air Pingouin : rien a voir ici.';
+    return;
+  }
+  // L'origine de retour voyage dans "state" (btoa(origin + '|' + nonce),
+  // pose par le dashboard avant la redirection vers Spotify).
+  var origin = '';
+  try { origin = atob(q.get('state') || '').split('|')[0]; } catch (e) {}
+  if (!/^http:\/\/(pingouin\.local|192\.168\.\d{1,3}\.\d{1,3})(:\d+)?$/.test(origin)) {
+    msg.textContent = 'origine de retour non autorisee — reconnectez-vous depuis le dashboard';
+    return;
+  }
+  location.replace(origin + '/' + location.search);
+})();
+</script>
+</body>
+</html>

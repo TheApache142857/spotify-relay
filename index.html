@@ -54,7 +54,12 @@
     msg.textContent = 'origine de retour non autorisee — reconnectez-vous depuis le dashboard';
     return;
   }
-  location.replace(origin + '/' + location.search);
+  // Le retour part dans le FRAGMENT (#...) et non en query string (?...) :
+  // le fragment n'est jamais envoye au serveur, donc le R4 recoit un
+  // simple "GET /" (son firmware WiFi tronque les requetes aux URL
+  // longues, et un code Spotify fait ~400 caracteres) et le code
+  // d'autorisation ne transite ni sur HTTP en clair ni dans ses logs.
+  location.replace(origin + '/#' + location.search.slice(1));
 })();
 </script>
 </body>

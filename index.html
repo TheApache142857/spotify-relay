@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <!--
-  Relais OAuth Spotify -> dashboard pingouin.local
-  =================================================
+  Relais OAuth Spotify -> dashboards pingouin.local / aptpms.local
+  ================================================================
   Depuis novembre 2025, Spotify exige une URI de redirection OAuth en
-  HTTPS (les adresses http:// sont refusees, sauf 127.0.0.1). Le
-  dashboard du R4 (http://pingouin.local) ne fait pas de TLS : cette
+  HTTPS (les adresses http:// sont refusees, sauf 127.0.0.1). Ni le
+  dashboard du R4 (http://pingouin.local) ni le tableau de bord TPMS
+  (http://aptpms.local) ne font de TLS : cette
   page, hebergee sur GitHub Pages (HTTPS), sert donc de point de rebond.
   Elle recoit le retour d'autorisation de Spotify et le renvoie TEL QUEL
   au dashboard, qui termine l'echange PKCE dans le navigateur.
@@ -50,7 +51,21 @@
   // pose par le dashboard avant la redirection vers Spotify).
   var origin = '';
   try { origin = atob(q.get('state') || '').split('|')[0]; } catch (e) {}
-  if (!/^http:\/\/(pingouin\.local|192\.168\.\d{1,3}\.\d{1,3})(:\d+)?$/.test(origin)) {
+  // Liste blanche des origines de retour. Elle ne sert qu'a une chose :
+  // ne pas faire de cette page un redirecteur ouvert. Le code qui
+  // transite est de toute facon inutilisable sans le code_verifier PKCE,
+  // qui n'a jamais quitte le navigateur d'origine.
+  //   pingouin.local : dashboard du hub Air Pingouin
+  //   aptpms.local   : tableau de bord TPMS (ecran musique de la carte
+  //                    AMOLED, voir shared/tpms_spotify.h dans TPMS-thingy)
+  //   192.168.x.x    : reseaux locaux ordinaires, quand mDNS ne resout pas
+  //   172.20.10.x    : plan d'adressage du PARTAGE DE CONNEXION iPhone.
+  //                    C'est le cas NORMAL de la carte TPMS, qui vit sur
+  //                    le hotspot du telephone et jamais sur un reseau
+  //                    domestique. Sans cette plage, le retour
+  //                    d'autorisation etait refuse et l'ecran musique ne
+  //                    pouvait tout simplement pas etre lie.
+  if (!/^http:\/\/(pingouin\.local|aptpms\.local|192\.168\.\d{1,3}\.\d{1,3}|172\.20\.10\.\d{1,3})(:\d+)?$/.test(origin)) {
     msg.textContent = 'origine de retour non autorisee — reconnectez-vous depuis le dashboard';
     return;
   }

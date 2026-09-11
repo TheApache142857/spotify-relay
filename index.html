@@ -65,8 +65,8 @@
   //                    domestique. Sans cette plage, le retour
   //                    d'autorisation etait refuse et l'ecran musique ne
   //                    pouvait tout simplement pas etre lie.
-    // Tout nom mDNS en .local (pingouin.local, ka.local pour le Pi...) ou IP du LAN.
-  if (!/^http:\/\/([a-z0-9-]+\.local|192\.168\.\d{1,3}\.\d{1,3})(:\d+)?$/i.test(origin)) {
+  //   ka.local       : nom propre du Raspberry Pi qui heberge le hub
+  if (!/^http:\/\/(pingouin\.local|ka\.local|aptpms\.local|192\.168\.\d{1,3}\.\d{1,3}|172\.20\.10\.\d{1,3})(:\d+)?$/.test(origin)) {
     msg.textContent = 'origine de retour non autorisee — reconnectez-vous depuis le dashboard';
     return;
   }
